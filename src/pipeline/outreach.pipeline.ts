@@ -7,6 +7,7 @@ import type { OutreachLead } from "../types/outreach.types.js";
 import { logger, logSection } from "../utils/logger.js";
 import readline from "readline/promises";
 import { stdin as input, stdout as output } from "process";
+import { env } from "../config/env.js";
 
 const ocean = new OceanService();
 const prospeo = new ProspeoService();
@@ -15,15 +16,19 @@ const brevo = new BrevoService();
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export async function runOutreachPipeline(targetCompanyDomain: string): Promise<void> {
+export async function runOutreachPipeline(
+  targetCompanyDomain: string,
+): Promise<void> {
   logSection(`Outreach Pipeline Started for: ${targetCompanyDomain}`);
 
   try {
+    // Service 1: OceanService - Find lookalike companies matching the target company domain
     const companies = await ocean.findLookalikeCompanies(targetCompanyDomain);
     const contacts: Contact[] = [];
 
     for (const company of companies) {
       try {
+        // Service 2: ProspeoService - Find decision makers for each lookalike company
         const companyContacts = await prospeo.findDecisionMakers(
           company.domain,
         );
@@ -38,6 +43,7 @@ export async function runOutreachPipeline(targetCompanyDomain: string): Promise<
     }
 
     logSection("Enriching Contacts (LinkedIn to Email)");
+    // Service 3: HunterService - Enrich found contacts with email addresses from LinkedIn URLs
     const leads: Lead[] = await hunter.enrichContacts(contacts);
 
     logSection("Pipeline Results");
@@ -55,9 +61,11 @@ export async function runOutreachPipeline(targetCompanyDomain: string): Promise<
 
     if (outreachLeads.length > 0) {
       logSection("Outreach Email Previews");
-      // Redirect all emails to your personal inbox for testing
-      outreachLeads.forEach((lead) => (lead.email = "76sonali40@gmail.com"));
+      // Redirect all emails to the configured demo email for testing
+      const targetTestEmail = env.demoEmail!;
+      outreachLeads.forEach((lead) => (lead.email = targetTestEmail));
 
+      // Service 4 (a): BrevoService - Preview the outreach email drafts
       await brevo.preview(outreachLeads);
 
       const rl = readline.createInterface({ input, output });
@@ -67,6 +75,7 @@ export async function runOutreachPipeline(targetCompanyDomain: string): Promise<
         );
         if (answer.toLowerCase() === "y" || answer.toLowerCase() === "yes") {
           logSection("Sending Emails via Brevo");
+          // Service 4 (b): BrevoService - Send the personalized outreach emails to the leads
           await brevo.sendBatch(outreachLeads);
         } else {
           logger.info("Outreach email dispatch cancelled by user.");

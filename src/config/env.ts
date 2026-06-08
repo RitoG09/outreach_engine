@@ -7,4 +7,5 @@ export const env = {
   prospeoApiKey: process.env.PROSPEO_API_KEY!,
   hunterApiKey: process.env.HUNTER_API_KEY!,
   brevoApiKey: process.env.BREVO_API_KEY!,
+  demoEmail: process.env.DEMO_EMAIL,
 };
