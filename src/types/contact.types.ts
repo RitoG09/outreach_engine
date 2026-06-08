@@ -8,3 +8,8 @@ export interface Contact {
   companyName: string;
   companyDomain: string;
 }
+
+export interface Lead extends Contact {
+  email: string;
+  emailStatus?: string;
+}

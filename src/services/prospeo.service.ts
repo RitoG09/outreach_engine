@@ -39,7 +39,8 @@ export class ProspeoService {
           linkedinUrl: item.person.linkedin_url!,
           companyName: item.company?.name ?? "Unknown",
           companyDomain: item.company?.domain ?? domain,
-        }));
+        }))
+        .slice(0, 2);
 
       logger.log(
         "success",

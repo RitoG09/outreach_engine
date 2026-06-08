@@ -10,7 +10,7 @@ export class OceanService {
 
     const res = await retry(async () => {
       return oceanClient.post("/v3/search/companies", {
-        size: 5,
+        size: 3,
         fields: ["domain", "name"],
         companiesFilters: {
           lookalikeDomains: [domain],

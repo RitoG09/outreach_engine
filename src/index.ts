@@ -1,10 +1,12 @@
 import { OceanService } from "./services/ocean.service.js";
 import { ProspeoService } from "./services/prospeo.service.js";
-import type { Contact } from "./types/contact.types.js";
+import { HunterService } from "./services/hunter.service.js";
+import type { Contact, Lead } from "./types/contact.types.js";
 import { logger, logSection } from "./utils/logger.js";
 
 const ocean = new OceanService();
 const prospeo = new ProspeoService();
+const hunter = new HunterService();
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -26,9 +28,12 @@ async function main() {
       await delay(2000);
     }
 
+    logSection("Enriching Contacts (LinkedIn to Email)");
+    const leads: Lead[] = await hunter.enrichContacts(contacts);
+
     logSection("Pipeline Results");
-    logger.log("success", `Retrieved ${contacts.length} total C-suite & VP contacts:`);
-    console.log(JSON.stringify(contacts, null, 2));
+    logger.log("success", `Retrieved ${leads.length} total leads with emails:`);
+    console.log(JSON.stringify(leads, null, 2));
 
   } catch (err) {
     logger.error(`Pipeline run failed: ${err}`);
